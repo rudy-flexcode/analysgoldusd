@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Gold vs USD</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #4CAF50; }
+        .signal { font-size: 24px; font-weight: bold; }
+        .buy { color: green; }
+        .sell { color: red; }
+        .neutral { color: gray; }
+    </style>
+</head>
+<body>
+    <h1>Analyse Gold vs USD</h1>
+    <div>
+        <button onclick="fetchSignal()">Vérifier Signal</button>
+    </div>
+    <div id="result">
+        <p id="signal" class="signal"></p>
+        <p id="gold">Prix Or (GLD): </p>
+        <p id="usd">Prix Dollar (UUP): </p>
+    </div>
+
+    <script>
+        function fetchSignal() {
+            fetch('http://127.0.0.1:5000/gold_and_usd')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.signal) {
+                        document.getElementById('signal').innerHTML = 'Signal: ' + data.signal;
+                        document.getElementById('gold').innerHTML = 'Prix Or: ' + data.gold;
+                        document.getElementById('usd').innerHTML = 'Prix Dollar: ' + data.usd;
+
+                        // Change color based on signal
+                        const signalElem = document.getElementById('signal');
+                        if (data.signal === 'Acheter') {
+                            signalElem.className = 'signal buy';
+                        } else if (data.signal === 'Vendre') {
+                            signalElem.className = 'signal sell';
+                        } else {
+                            signalElem.className = 'signal neutral';
+                        }
+                    } else {
+                        alert('Erreur avec l\'API');
+                    }
+                })
+                .catch(error => console.log('Erreur:', error));
+        }
+    </script>
+</body>
+</html>

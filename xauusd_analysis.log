@@ -1,0 +1,16 @@
+2025-03-20 16:55:18,991 - __main__ - INFO - Démarrage du script d'analyse XAUUSD
+2025-03-20 16:55:20,961 - __main__ - INFO - Données récupérées avec succès: 561 périodes
+2025-03-20 16:55:20,972 - __main__ - INFO - Indicateurs calculés avec succès
+2025-03-20 16:55:20,973 - __main__ - ERROR - Erreur inattendue: Can only compare identically-labeled Series objects
+2025-03-20 16:57:14,126 - __main__ - INFO - Démarrage du script d'analyse XAUUSD
+2025-03-20 16:57:17,323 - __main__ - INFO - Données récupérées avec succès: 561 périodes
+2025-03-20 16:57:17,335 - __main__ - INFO - Indicateurs calculés avec succès
+2025-03-20 16:57:17,337 - __main__ - ERROR - Erreur inattendue: Can only compare identically-labeled Series objects
+2025-03-20 16:58:20,233 - __main__ - INFO - Démarrage du script d'analyse XAUUSD
+2025-03-20 16:58:22,080 - __main__ - INFO - Données récupérées avec succès: 561 périodes
+2025-03-20 16:58:22,092 - __main__ - INFO - Indicateurs calculés avec succès
+2025-03-20 16:58:22,093 - __main__ - ERROR - Erreur inattendue: Can only compare identically-labeled Series objects
+2025-03-20 17:02:00,005 - __main__ - INFO - Démarrage du script d'analyse XAUUSD
+2025-03-20 17:02:01,893 - __main__ - INFO - Données récupérées avec succès: 561 périodes
+2025-03-20 17:02:01,907 - __main__ - INFO - Indicateurs calculés avec succès
+2025-03-20 17:02:01,913 - __main__ - INFO - Analyse terminée, attente jusqu'à la prochaine vérification
