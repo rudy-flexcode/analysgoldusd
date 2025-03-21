@@ -25,6 +25,11 @@ def get_price(symbol):
     else:
         return None
 
+@app.route('/', methods=['GET'])
+def index():
+    """Route racine pour vérifier si l'API fonctionne."""
+    return jsonify({"message": "Bienvenue sur l'API de suivi de l'ETF Gold et USD. Utilisez /gold_and_usd pour obtenir les données."})
+
 @app.route('/gold_and_usd', methods=['GET'])
 def get_signal():
     """Route qui renvoie le signal pour l'ETF Gold et l'ETF USD."""
