@@ -24,32 +24,30 @@ def get_price(symbol):
     else:
         return None
 
-@app.route('/', methods=['GET'])
-def index():
-    """Route racine pour afficher une interface graphique simple."""
-    return render_template('index.html')
-
-@app.route('/gold_and_usd', methods=['GET'])
 def get_signal():
-    """Route qui renvoie le signal pour l'ETF Gold et l'ETF USD avec un template HTML."""
+    """Fonction pour obtenir le signal basé sur les prix de Gold et USD."""
     gold_price = get_price(gold_symbol)
     usd_price = get_price(usd_symbol)
     
-    signal = "Neutre"
-    if gold_price and usd_price:
+    if gold_price is not None and usd_price is not None:
         if gold_price > usd_price:
-            signal = "Acheter"
+            return "Acheter", gold_price, usd_price
         elif gold_price < usd_price:
-            signal = "Vendre"
-        
-        # Rendre la page avec les données
-        return render_template('gold_and_usd.html', signal=signal, gold_price=gold_price, usd_price=usd_price)
+            return "Vendre", gold_price, usd_price
+        else:
+            return "Neutre", gold_price, usd_price
     else:
-        # Si les données sont manquantes, renvoyer une erreur
-        return jsonify({'error': 'Données non disponibles'}), 500
+        return None, None, None
+
+@app.route('/', methods=['GET'])
+def index():
+    """Route racine pour afficher une interface graphique avec signal calculé."""
+    signal, gold_price, usd_price = get_signal()
+    
+    # Affichage du signal et des prix directement sur la page d'accueil
+    return render_template('index.html', signal=signal, gold_price=gold_price, usd_price=usd_price)
 
 if __name__ == "__main__":
     # Remplacer 5000 par la variable d'environnement pour le port (si définie)
     port = int(os.environ.get("PORT", 5000))  # Définit le port à utiliser
     app.run(host="0.0.0.0", port=port, debug=True)
-
