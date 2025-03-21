@@ -1,90 +1,99 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des ETF Gold et USD</title>
+    <title>Suivi ETF Gold & RSI</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background-color: white;
+            display: flex;
+            gap: 20px;
+        }
+        .card {
+            background: #fff;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 300px;
+            text-align: center;
         }
         h1 {
-            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 10px;
         }
         .signal {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .price {
-            font-size: 20px;
-            text-align: center;
+            font-size: 1.2em;
             margin: 10px 0;
+            font-weight: bold;
         }
         button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
+            padding: 10px 20px;
             border: none;
+            background: #4CAF50;
+            color: white;
             border-radius: 5px;
-            font-size: 16px;
             cursor: pointer;
-            margin-top: 20px;
         }
         button:disabled {
-            background-color: #ccc;
+            background: #999;
         }
     </style>
 </head>
+
 <body>
+    <div class="container">
+        <!-- Première carte -->
+        <div class="card" id="signal-card">
+            <h1>Suivi des ETF Gold et USD</h1>
+            <div class="signal" id="signal">{{ signal }}</div>
+            <p>Prix de l'ETF Gold : $<span id="gold">{{ gold_price }}</span></p>
+            <p>Prix de l'ETF USD : $<span id="usd">{{ usd_price }}</span></p>
+            <button id="refresh-btn">Rafraîchir les données</button>
+        </div>
 
-<div class="container">
-    <h1>Suivi des ETF Gold et USD</h1>
-    <div class="signal" id="signal">{{ signal }}</div>
-    <div class="price" id="gold_price">Prix de l'ETF Gold : ${{ gold_price }}</div>
-    <div class="price" id="usd_price">Prix de l'ETF USD : ${{ usd_price }}</div>
-    
-    <button id="refreshButton" onclick="refreshData()">Rafraîchir les données</button>
-</div>
+        <!-- Deuxième carte -->
+        <div class="card" id="rsi-card">
+            <h1>Analyse RSI</h1>
+            <div class="signal" id="rsi-signal">{{ rsi_signal }}</div>
+            <p>Valeur RSI : <span id="rsi-value">{{ rsi_value }}</span></p>
+        </div>
+    </div>
 
-<script>
-    let lastUpdateTime = 0;
-    const refreshButton = document.getElementById('refreshButton');
+    <script>
+        const btn = document.getElementById("refresh-btn");
+        let cooldown = false;
 
-    function refreshData() {
-        const currentTime = Date.now();
-        // Vérifie si 1 minute s'est écoulée
-        if (currentTime - lastUpdateTime >= 60000) {
-            fetch('/refresh')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('signal').textContent = "Signal de trading : " + data.signal;
-                    document.getElementById('gold_price').textContent = "Prix de l'ETF Gold : $" + data.gold_price;
-                    document.getElementById('usd_price').textContent = "Prix de l'ETF USD : $" + data.usd_price;
+        btn.addEventListener("click", () => {
+            if (!cooldown) {
+                fetch('/refresh')
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById("signal").innerText = data.signal;
+                        document.getElementById("gold").innerText = data.gold_price.toFixed(2);
+                        document.getElementById("usd").innerText = data.usd_price.toFixed(2);
+                        document.getElementById("rsi-value").innerText = data.rsi_value.toFixed(2);
+                        document.getElementById("rsi-signal").innerText = data.rsi_signal;
+                    });
 
-                    // Met à jour l'heure de la dernière mise à jour
-                    lastUpdateTime = currentTime;
-                })
-                .catch(error => console.error('Erreur:', error));
-        } else {
-            alert('Vous devez attendre 1 minute avant de rafraîchir à nouveau.');
-        }
-    }
-</script>
+                btn.disabled = true;
+                cooldown = true;
 
+                setTimeout(() => {
+                    btn.disabled = false;
+                    cooldown = false;
+                }, 60000); // 60 sec
+            }
+        });
+    </script>
 </body>
-</html>
 
+</html>
