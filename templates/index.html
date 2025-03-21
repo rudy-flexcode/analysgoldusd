@@ -3,156 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETF Tracker Pro - Or vs USD</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Suivi des ETF et Analyse RSI/SMA</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            margin: 0;
-            min-height: 100vh;
-        }
-        header {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-        }
-        header h1 {
-            margin: 0;
-        }
-        .subtitle {
-            font-style: italic;
-            margin-top: 5px;
-            color: #ccc;
-        }
-        .container {
-            max-width: 1200px;
-            padding: 0 15px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .card-header {
-            font-weight: bold;
-            background-color: #f1f1f1;
-            padding: 15px;
-            border-radius: 8px 8px 0 0;
-        }
-        .signal-strong-buy {
-            background-color: #28a745;
-            color: white;
-            border-radius: 8px;
-        }
-        .signal-buy {
-            background-color: #5cb85c;
-            color: white;
-            border-radius: 8px;
-        }
-        .signal-watch-buy {
-            background-color: #d4edda;
-            color: #155724;
-            border-radius: 8px;
-        }
-        .signal-neutral {
-            background-color: #f8f9fa;
-            color: #6c757d;
-            border-radius: 8px;
-        }
-        .signal-watch-sell {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-radius: 8px;
-        }
-        .signal-sell {
-            background-color: #dc3545;
-            color: white;
-            border-radius: 8px;
-        }
-        .signal-strong-sell {
-            background-color: #bd2130;
-            color: white;
-            border-radius: 8px;
-        }
-        .indicator-buy {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .indicator-sell {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .indicator-neutral {
-            color: #6c757d;
-        }
-        .last-update {
-            font-size: 0.8rem;
-            color: #6c757d;
-            text-align: right;
-            font-style: italic;
-        }
-        .spinner-border {
-            width: 1.5rem;
-            height: 1.5rem;
-            margin-right: 0.5rem;
-        }
-        .progress {
-            height: 25px;
-        }
-        .progress-bar {
-            font-weight: bold;
-        }
-        .btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 20px 0;
-        }
-        .btn:hover {
-            background-color: #45a049;
-        }
-        #loading {
-            margin-top: 10px;
-            font-style: italic;
-            color: #888;
-        }
-        footer {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 15px 0;
-            margin-top: auto;
-            font-size: 0.9em;
-        }
-        .legal {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-            text-align: justify;
-        }
-        .legal a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
-        .legal a:hover {
-            text-decoration: underline;
-        }
+        /* ... ton style ici ... */
     </style>
 </head>
 <body>
@@ -162,296 +15,78 @@
     </header>
 
     <div class="container">
-        <div class="row">
-            <div class="col-md-12 mb-3">
-                <div class="d-flex justify-content-between">
-                    <button id="refreshBtn" class="btn">
-                        <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        Rafraîchir les données
-                    </button>
-                    <p id="lastUpdate" class="last-update mt-2">Dernière mise à jour: --</p>
-                </div>
-                <div id="loading"></div>
-            </div>
+        <!-- Carte 1 -->
+        <div class="card">
+            <h2>Suivi des ETF Gold et USD</h2>
+            <p>Prix de l'ETF Gold : $<span id="gold_price"></span></p>
+            <p>Prix de l'ETF USD : $<span id="usd_price"></span></p>
+            <p><strong>Signal :</strong> <span id="signal"></span></p>
         </div>
-
-        <div class="row">
-            <!-- Prix actuels -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">Prix Actuels</div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <h5>Or (GLD)</h5>
-                            <h2 id="goldPrice">--</h2>
-                        </div>
-                        <div class="mb-3">
-                            <h5>USD (UUP)</h5>
-                            <h2 id="usdPrice">--</h2>
-                        </div>
-                        <div>
-                            <h5>Ratio Or/USD</h5>
-                            <h2 id="goldUsdRatio">--</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Signal global -->
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">Signal de Trading</div>
-                    <div class="card-body">
-                        <h1 id="mainSignal" class="text-center mb-3 p-3">--</h1>
-                        <div class="progress mb-3">
-                            <div id="signalStrength" class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
-                        </div>
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">Tendance du Ratio</div>
-                                    <div class="card-body">
-                                        <h3 id="ratioTrend" class="text-center">--</h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">Niveau de Risque</div>
-                                    <div class="card-body">
-                                        <h3 id="riskLevel" class="text-center">--</h3>
-                                        <p id="volatility" class="text-center">Volatilité: --</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        
+        <!-- Carte 2 -->
+        <div class="card">
+            <h2>Analyse RSI</h2>
+            <p>Valeur RSI : <span id="rsi"></span></p>
+            <p><strong>Signal RSI :</strong> <span id="rsi_signal"></span></p>
         </div>
-
-        <div class="row mt-3">
-            <!-- Indicateurs techniques -->
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">Indicateurs Techniques</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="card">
-                                    <div class="card-header">RSI</div>
-                                    <div class="card-body">
-                                        <h3 id="rsiValue" class="text-center">--</h3>
-                                        <p id="rsiSignal" class="text-center">--</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card">
-                                    <div class="card-header">SMA</div>
-                                    <div class="card-body">
-                                        <p>Court terme: <span id="smaShort">--</span></p>
-                                        <p>Long terme: <span id="smaLong">--</span></p>
-                                        <p id="smaSignal" class="text-center">--</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card">
-                                    <div class="card-header">MACD</div>
-                                    <div class="card-body">
-                                        <p>MACD: <span id="macdValue">--</span></p>
-                                        <p>Signal: <span id="macdSignalLine">--</span></p>
-                                        <p>Histogramme: <span id="macdHistogram">--</span></p>
-                                        <p id="macdSignal" class="text-center">--</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card">
-                                    <div class="card-header">Volume</div>
-                                    <div class="card-body">
-                                        <h3 id="volumeValue" class="text-center">--</h3>
-                                        <p id="volumeSignal" class="text-center">--</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        
+        <!-- Carte 3 -->
+        <div class="card">
+            <h2>Moyenne Mobile (SMA)</h2>
+            <p>Valeur SMA : <span id="sma"></span></p>
+            <p><strong>Signal SMA :</strong> <span id="sma_signal"></span></p>
         </div>
     </div>
-
+    
+    <button class="btn" onclick="refreshData()">Rafraîchir les données</button>
+    <div id="loading"></div>
+    
     <footer>
         <div class="legal">
-            <p><strong>Mentions légales</strong></p>
-            <p>ETF Tracker Pro est un outil d'information financière fourni à titre indicatif uniquement. Les données fournies proviennent de l'API Twelve Data et sont actualisées à intervalle régulier.</p>
-            <p>Les signaux d'achat et de vente générés par cet outil ne constituent en aucun cas des conseils d'investissement. Toute décision d'investissement prise sur la base de ces informations relève de la responsabilité exclusive de l'utilisateur.</p>
-            <p>© 2025 ETF Tracker Pro. Tous droits réservés.</p>
-            <p>Contact : <a href="mailto:rudydev974@gmail.com">rudydev974@gmail.com</a></p>
+            <!-- Mentions légales -->
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Charger les données initiales
-            fetchData();
-
-            // Configurer le bouton de rafraîchissement
-            document.getElementById('refreshBtn').addEventListener('click', function() {
-                document.getElementById('spinner').classList.remove('d-none');
-                document.getElementById('loading').innerText = "Chargement des données...";
-                fetchData(true);
-            });
-
-            // Fonction pour formater les timestamps
-            function formatTimestamp(timestamp) {
-                const date = new Date(timestamp * 1000);
-                return date.toLocaleString();
-            }
-
-            // Fonction pour formater les nombres
-            function formatNumber(num) {
-                if (num === null || num === undefined) return '--';
-                return parseFloat(num).toFixed(2);
-            }
-
-            // Fonction pour formater les volumes
-            function formatVolume(volume) {
-                if (volume === null || volume === undefined) return '--';
-                if (volume > 1000000) {
-                    return (volume / 1000000).toFixed(2) + ' M';
-                } else if (volume > 1000) {
-                    return (volume / 1000).toFixed(2) + ' K';
+        async function refreshData() {
+            document.getElementById('loading').innerText = "Chargement des données...";
+            try {
+                const response = await fetch('/refresh');
+                const text = await response.text();
+                
+                if (!response.ok) {
+                    throw new Error('Erreur réseau');
                 }
-                return volume.toFixed(2);
-            }
 
-            // Fonction pour définir la classe de signal
-            function getSignalClass(signal) {
-                if (!signal) return '';
-                
-                if (signal.includes('Fort')) {
-                    if (signal.includes('Acheter')) return 'signal-strong-buy';
-                    if (signal.includes('Vendre')) return 'signal-strong-sell';
-                } else if (signal.includes('Modéré')) {
-                    if (signal.includes('Acheter')) return 'signal-buy';
-                    if (signal.includes('Vendre')) return 'signal-sell';
-                } else if (signal.includes('Surveillance')) {
-                    if (signal.includes('Achat')) return 'signal-watch-buy';
-                    if (signal.includes('Vente')) return 'signal-watch-sell';
-                } else if (signal.includes('Neutre')) {
-                    return 'signal-neutral';
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (jsonError) {
+                    console.error('Erreur lors de l\'analyse JSON:', jsonError);
+                    throw new Error('Réponse invalide du serveur');
                 }
-                
-                return '';
-            }
 
-            // Fonction pour définir la classe d'indicateur
-            function getIndicatorClass(signal) {
-                if (!signal) return '';
-                
-                if (signal.includes('Acheter')) return 'indicator-buy';
-                if (signal.includes('Vendre')) return 'indicator-sell';
-                return 'indicator-neutral';
+                document.getElementById('gold_price').innerText = data.gold_price?.toFixed(2) || "N/A";
+                document.getElementById('usd_price').innerText = data.usd_price?.toFixed(2) || "N/A";
+                document.getElementById('signal').innerText = data.signal || "N/A";
+                document.getElementById('rsi').innerText = data.rsi?.toFixed(2) || "N/A";
+                document.getElementById('rsi_signal').innerText = data.rsi_signal || "N/A";
+                document.getElementById('sma').innerText = data.sma?.toFixed(2) || "N/A";
+                document.getElementById('sma_signal').innerText = data.sma_signal || "N/A";
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('loading').innerText = "Erreur lors du chargement des données.";
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('loading').innerText = "";
+                }, 2000);
             }
+        }
 
-            // Fonction pour calculer la largeur de la barre de progression
-            function calculateProgressWidth(signalStrength) {
-                // Convertir la force du signal (-1 à 1) en pourcentage (0 à 100)
-                return ((signalStrength + 1) / 2) * 100;
-            }
-
-            // Fonction pour définir la couleur de la barre de progression
-            function getProgressBarColor(signalStrength) {
-                if (signalStrength >= 0.7) return 'bg-success';
-                if (signalStrength >= 0.3) return 'bg-info';
-                if (signalStrength >= 0.1) return 'bg-info';
-                if (signalStrength <= -0.7) return 'bg-danger';
-                if (signalStrength <= -0.3) return 'bg-warning';
-                if (signalStrength <= -0.1) return 'bg-warning';
-                return 'bg-secondary';
-            }
-
-            // Fonction pour récupérer les données
-            function fetchData(forceRefresh = false) {
-                const endpoint = forceRefresh ? '/force_refresh' : '/refresh';
-                
-                fetch(endpoint)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Mettre à jour les prix
-                        document.getElementById('goldPrice').textContent = formatNumber(data.gold_price);
-                        document.getElementById('usdPrice').textContent = formatNumber(data.usd_price);
-                        document.getElementById('goldUsdRatio').textContent = formatNumber(data.gold_usd_ratio);
-                        
-                        // Mettre à jour le signal principal
-                        const mainSignalElement = document.getElementById('mainSignal');
-                        mainSignalElement.textContent = data.signal || '--';
-                        mainSignalElement.className = 'text-center mb-3 p-3 ' + getSignalClass(data.signal);
-                        
-                        // Mettre à jour la barre de progression
-                        const signalStrength = data.signal_strength || 0;
-                        const progressWidth = calculateProgressWidth(signalStrength);
-                        const progressBar = document.getElementById('signalStrength');
-                        progressBar.style.width = progressWidth + '%';
-                        progressBar.textContent = progressWidth.toFixed(1) + '%';
-                        progressBar.className = 'progress-bar ' + getProgressBarColor(signalStrength);
-                        
-                        // Mettre à jour la tendance du ratio
-                        document.getElementById('ratioTrend').textContent = data.ratio_trend || '--';
-                        
-                        // Mettre à jour le niveau de risque
-                        document.getElementById('riskLevel').textContent = data.risk_level || '--';
-                        document.getElementById('volatility').textContent = 'Volatilité: ' + 
-                            (data.volatility ? formatNumber(data.volatility) + '%' : '--');
-                        
-                        // Mettre à jour les indicateurs RSI
-                        document.getElementById('rsiValue').textContent = formatNumber(data.rsi);
-                        const rsiSignalElement = document.getElementById('rsiSignal');
-                        rsiSignalElement.textContent = data.rsi_signal || '--';
-                        rsiSignalElement.className = 'text-center ' + getIndicatorClass(data.rsi_signal);
-                        
-                        // Mettre à jour les indicateurs SMA
-                        document.getElementById('smaShort').textContent = formatNumber(data.sma_short);
-                        document.getElementById('smaLong').textContent = formatNumber(data.sma_long);
-                        const smaSignalElement = document.getElementById('smaSignal');
-                        smaSignalElement.textContent = data.sma_signal || '--';
-                        smaSignalElement.className = 'text-center ' + getIndicatorClass(data.sma_signal);
-                        
-                        // Mettre à jour les indicateurs MACD
-                        document.getElementById('macdValue').textContent = formatNumber(data.macd);
-                        document.getElementById('macdSignalLine').textContent = formatNumber(data.macd_signal_line);
-                        document.getElementById('macdHistogram').textContent = formatNumber(data.macd_histogram);
-                        const macdSignalElement = document.getElementById('macdSignal');
-                        macdSignalElement.textContent = data.macd_signal || '--';
-                        macdSignalElement.className = 'text-center ' + getIndicatorClass(data.macd_signal);
-                        
-                        // Mettre à jour les indicateurs de volume
-                        document.getElementById('volumeValue').textContent = formatVolume(data.volume);
-                        document.getElementById('volumeSignal').textContent = data.volume_signal || '--';
-                        
-                        // Mettre à jour l'horodatage
-                        document.getElementById('lastUpdate').textContent = 
-                            'Dernière mise à jour: ' + (data.last_update ? formatTimestamp(data.last_update) : '--');
-                        
-                        // Masquer le spinner et message de chargement
-                        document.getElementById('spinner').classList.add('d-none');
-                        document.getElementById('loading').innerText = "";
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la récupération des données:', error);
-                        document.getElementById('spinner').classList.add('d-none');
-                        document.getElementById('loading').innerText = "Erreur lors du chargement des données.";
-                        setTimeout(() => {
-                            document.getElementById('loading').innerText = "";
-                        }, 2000);
-                    });
-            }
-            
-            // Rafraîchir automatiquement toutes les 5 minutes
-            setInterval(fetchData, 300000);
+        // Auto-refresh au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshData();
+            setInterval(refreshData, 300000);  // Rafraîchit toutes les 5 minutes
         });
     </script>
 </body>
