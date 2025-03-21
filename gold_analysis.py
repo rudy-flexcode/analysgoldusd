@@ -38,5 +38,8 @@ def get_signal():
     else:
         return jsonify({'error': 'Données non disponibles'}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    # Remplacer 5000 par la variable d'environnement pour le port
+    port = int(os.environ.get("PORT", 5000))  # Définit le port à utiliser
+    app.run(host="0.0.0.0", port=port, debug=True)
+
