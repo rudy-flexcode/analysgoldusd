@@ -1,4 +1,3 @@
-
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template
@@ -43,11 +42,23 @@ def get_rsi(symbol):
         return float(latest_rsi)
     return None
 
+def get_sma(symbol):
+    url = f"https://api.twelvedata.com/sma?symbol={symbol}&interval=1min&time_period=14&apikey={API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+
+    if 'values' in data:
+        latest_sma = data['values'][0]['sma']
+        return float(latest_sma)
+    return None
+
 def get_signals():
     gold_price = get_price(gold_symbol)
     usd_price = get_price(usd_symbol)
     rsi_value = get_rsi(gold_symbol)
+    sma_value = get_sma(gold_symbol)
 
+    # Signal Gold vs USD
     if gold_price is not None and usd_price is not None:
         if gold_price > usd_price:
             signal = "Acheter"
@@ -58,6 +69,7 @@ def get_signals():
     else:
         signal = "Indisponible"
 
+    # Signal RSI
     if rsi_value is not None:
         if rsi_value > 70:
             rsi_signal = "Vendre"
@@ -68,12 +80,25 @@ def get_signals():
     else:
         rsi_signal = "Indisponible"
 
+    # Signal SMA
+    if gold_price is not None and sma_value is not None:
+        if gold_price > sma_value:
+            sma_signal = "Acheter"
+        elif gold_price < sma_value:
+            sma_signal = "Vendre"
+        else:
+            sma_signal = "Neutre"
+    else:
+        sma_signal = "Indisponible"
+
     return {
         'signal': signal,
         'gold_price': gold_price,
         'usd_price': usd_price,
         'rsi': rsi_value,
-        'rsi_signal': rsi_signal
+        'rsi_signal': rsi_signal,
+        'sma': sma_value,
+        'sma_signal': sma_signal
     }
 
 @app.route('/')
@@ -88,3 +113,4 @@ def refresh_data():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
