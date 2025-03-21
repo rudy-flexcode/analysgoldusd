@@ -5,7 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi des ETF et Analyse RSI/SMA</title>
     <style>
-        /* ... ton style ici ... */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        header {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .subtitle {
+            font-style: italic;
+            margin-top: 5px;
+            color: #ccc;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        #loading {
+            margin-top: 10px;
+            font-style: italic;
+            color: #888;
+        }
+        footer {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 0.9em;
+        }
+        .legal {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: justify;
+        }
+        .legal a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .legal a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .card {
+                width: 90%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -43,7 +134,11 @@
     
     <footer>
         <div class="legal">
-            <!-- Mentions légales -->
+            <p><strong>Mentions légales</strong></p>
+            <p>ETF Tracker Pro est un outil d'information financière fourni à titre indicatif uniquement. Les données fournies proviennent de l'API Twelve Data et sont actualisées à intervalle régulier.</p>
+            <p>Les signaux d'achat et de vente générés par cet outil ne constituent en aucun cas des conseils d'investissement. Toute décision d'investissement prise sur la base de ces informations relève de la responsabilité exclusive de l'utilisateur.</p>
+            <p>© 2025 ETF Tracker Pro. Tous droits réservés.</p>
+            <p>Contact : <a href="rudydev974@gmail.com">rudydev974@gmail.com</a></p>
         </div>
     </footer>
 
@@ -52,20 +147,11 @@
             document.getElementById('loading').innerText = "Chargement des données...";
             try {
                 const response = await fetch('/refresh');
-                const text = await response.text();
-                
                 if (!response.ok) {
                     throw new Error('Erreur réseau');
                 }
-
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (jsonError) {
-                    console.error('Erreur lors de l\'analyse JSON:', jsonError);
-                    throw new Error('Réponse invalide du serveur');
-                }
-
+                const data = await response.json();
+                
                 document.getElementById('gold_price').innerText = data.gold_price?.toFixed(2) || "N/A";
                 document.getElementById('usd_price').innerText = data.usd_price?.toFixed(2) || "N/A";
                 document.getElementById('signal').innerText = data.signal || "N/A";
@@ -82,11 +168,12 @@
                 }, 2000);
             }
         }
-
+        
         // Auto-refresh au chargement
         document.addEventListener('DOMContentLoaded', () => {
             refreshData();
-            setInterval(refreshData, 300000);  // Rafraîchit toutes les 5 minutes
+            // Rafraîchir automatiquement toutes les 5 minutes
+            setInterval(refreshData, 300000);
         });
     </script>
 </body>
