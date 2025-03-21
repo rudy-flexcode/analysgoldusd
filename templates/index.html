@@ -75,14 +75,21 @@
         btn.addEventListener("click", () => {
             if (!cooldown) {
                 fetch('/refresh')
-                    .then(res => res.json())
-                    .then(data => {
-                        document.getElementById("signal").innerText = data.signal;
-                        document.getElementById("gold").innerText = data.gold_price.toFixed(2);
-                        document.getElementById("usd").innerText = data.usd_price.toFixed(2);
-                        document.getElementById("rsi-value").innerText = data.rsi_value.toFixed(2);
-                        document.getElementById("rsi-signal").innerText = data.rsi_signal;
-                    });
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('gold-price').innerText = data.gold_price.toFixed(2) + " $";
+        document.getElementById('usd-price').innerText = data.usd_price.toFixed(2) + " $";
+        document.getElementById('signal').innerText = data.signal;
+
+        if (data.rsi !== null) {
+            document.getElementById('rsi-value').innerText = data.rsi.toFixed(2);
+            document.getElementById('rsi-signal').innerText = data.rsi_signal;
+        } else {
+            document.getElementById('rsi-value').innerText = "Indisponible";
+            document.getElementById('rsi-signal').innerText = "Indisponible";
+        }
+    });
+
 
                 btn.disabled = true;
                 cooldown = true;

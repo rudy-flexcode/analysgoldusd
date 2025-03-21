@@ -1,24 +1,19 @@
+
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template
 import requests
 from time import time
 
-# Charge les variables d'environnement depuis le fichier .env
 load_dotenv()
-
 app = Flask(__name__)
 
 API_KEY = os.getenv("API_KEY")
-
 gold_symbol = "GLD"
 usd_symbol = "UUP"
 
-# Cache et temps pour limiter les appels API
 cache = {}
 cache_time = 0
-rsi_cache = {}
-rsi_cache_time = 0
 
 def get_price(symbol):
     global cache, cache_time
@@ -38,74 +33,57 @@ def get_price(symbol):
     else:
         return None
 
-def get_signal():
-    gold_price = get_price(gold_symbol)
-    usd_price = get_price(usd_symbol)
-    
-    if gold_price is not None and usd_price is not None:
-        if gold_price > usd_price:
-            return "Acheter", gold_price, usd_price
-        elif gold_price < usd_price:
-            return "Vendre", gold_price, usd_price
-        else:
-            return "Neutre", gold_price, usd_price
-    else:
-        return None, None, None
-
 def get_rsi(symbol):
-    global rsi_cache, rsi_cache_time
-    current_time = time()
-
-    if symbol in rsi_cache and current_time - rsi_cache_time < 60:
-        return rsi_cache[symbol]
-
     url = f"https://api.twelvedata.com/rsi?symbol={symbol}&interval=1min&apikey={API_KEY}"
     response = requests.get(url)
     data = response.json()
 
-    if 'value' in data:
-        rsi_value = float(data['value'])
-        rsi_cache[symbol] = rsi_value
-        rsi_cache_time = current_time
-        return rsi_value
-    else:
-        return None
+    if 'values' in data:
+        latest_rsi = data['values'][0]['rsi']
+        return float(latest_rsi)
+    return None
 
-def get_rsi_signal(rsi_value):
+def get_signals():
+    gold_price = get_price(gold_symbol)
+    usd_price = get_price(usd_symbol)
+    rsi_value = get_rsi(gold_symbol)
+
+    if gold_price is not None and usd_price is not None:
+        if gold_price > usd_price:
+            signal = "Acheter"
+        elif gold_price < usd_price:
+            signal = "Vendre"
+        else:
+            signal = "Neutre"
+    else:
+        signal = "Indisponible"
+
     if rsi_value is not None:
         if rsi_value > 70:
-            return "Vendre"
+            rsi_signal = "Vendre"
         elif rsi_value < 30:
-            return "Acheter"
+            rsi_signal = "Acheter"
         else:
-            return "Neutre"
-    return "Indisponible"
+            rsi_signal = "Neutre"
+    else:
+        rsi_signal = "Indisponible"
 
-@app.route('/', methods=['GET'])
+    return {
+        'signal': signal,
+        'gold_price': gold_price,
+        'usd_price': usd_price,
+        'rsi': rsi_value,
+        'rsi_signal': rsi_signal
+    }
+
+@app.route('/')
 def index():
-    signal, gold_price, usd_price = get_signal()
-    rsi_value = get_rsi(gold_symbol)
-    rsi_signal = get_rsi_signal(rsi_value)
-    
-    return render_template('index.html', 
-                           signal=signal, 
-                           gold_price=gold_price, 
-                           usd_price=usd_price,
-                           rsi_value=rsi_value,
-                           rsi_signal=rsi_signal)
+    return render_template('index.html')
 
 @app.route('/refresh', methods=['GET'])
 def refresh_data():
-    signal, gold_price, usd_price = get_signal()
-    rsi_value = get_rsi(gold_symbol)
-    rsi_signal = get_rsi_signal(rsi_value)
-    return jsonify({
-        'signal': signal, 
-        'gold_price': gold_price, 
-        'usd_price': usd_price,
-        'rsi_value': rsi_value,
-        'rsi_signal': rsi_signal
-    })
+    data = get_signals()
+    return jsonify(data)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
