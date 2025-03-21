@@ -4,18 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi des ETF Gold et USD</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .signal {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .price {
+            font-size: 20px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+    </style>
 </head>
 <body>
-    <h1>Suivi des ETF Gold et USD</h1>
-    
-    <div>
-        <h2>Signal de trading : {{ signal }}</h2>
-        <p><strong>Prix de l'ETF Gold :</strong> ${{ gold_price }}</p>
-        <p><strong>Prix de l'ETF USD :</strong> ${{ usd_price }}</p>
-    </div>
 
-    <footer>
-        <p>Visitez la page pour plus de détails sur les ETF.</p>
-    </footer>
+<div class="container">
+    <h1>Suivi des ETF Gold et USD</h1>
+    <div class="signal" id="signal">{{ signal }}</div>
+    <div class="price" id="gold_price">Prix de l'ETF Gold : ${{ gold_price }}</div>
+    <div class="price" id="usd_price">Prix de l'ETF USD : ${{ usd_price }}</div>
+    
+    <button id="refreshButton" onclick="refreshData()">Rafraîchir les données</button>
+</div>
+
+<script>
+    let lastUpdateTime = 0;
+    const refreshButton = document.getElementById('refreshButton');
+
+    function refreshData() {
+        const currentTime = Date.now();
+        // Vérifie si 1 minute s'est écoulée
+        if (currentTime - lastUpdateTime >= 60000) {
+            fetch('/refresh')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('signal').textContent = "Signal de trading : " + data.signal;
+                    document.getElementById('gold_price').textContent = "Prix de l'ETF Gold : $" + data.gold_price;
+                    document.getElementById('usd_price').textContent = "Prix de l'ETF USD : $" + data.usd_price;
+
+                    // Met à jour l'heure de la dernière mise à jour
+                    lastUpdateTime = currentTime;
+                })
+                .catch(error => console.error('Erreur:', error));
+        } else {
+            alert('Vous devez attendre 1 minute avant de rafraîchir à nouveau.');
+        }
+    }
+</script>
+
 </body>
 </html>
+
