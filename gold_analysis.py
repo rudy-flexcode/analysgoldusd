@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 import requests
 
 # Charge les variables d'environnement depuis le fichier .env
@@ -11,7 +11,6 @@ app = Flask(__name__)
 # Récupère la clé API depuis la variable d'environnement
 API_KEY = os.getenv("API_KEY")
 
-# Symboles pour l'ETF Gold et l'ETF USD
 gold_symbol = "GLD"
 usd_symbol = "UUP"
 
@@ -27,25 +26,24 @@ def get_price(symbol):
 
 @app.route('/', methods=['GET'])
 def index():
-    """Route racine pour vérifier si l'API fonctionne."""
-    return jsonify({"message": "Bienvenue sur l'API de suivi de l'ETF Gold et USD. Utilisez /gold_and_usd pour obtenir les données."})
+    """Route racine pour afficher une interface graphique simple."""
+    return render_template('index.html')
 
 @app.route('/gold_and_usd', methods=['GET'])
 def get_signal():
-    """Route qui renvoie le signal pour l'ETF Gold et l'ETF USD."""
+    """Route qui renvoie le signal pour l'ETF Gold et l'ETF USD avec un template HTML."""
     gold_price = get_price(gold_symbol)
     usd_price = get_price(usd_symbol)
     
+    signal = "Neutre"
     if gold_price and usd_price:
-        # Déterminer le signal d'achat, de vente ou neutre
-        signal = "Neutre"
         if gold_price > usd_price:
             signal = "Acheter"
         elif gold_price < usd_price:
             signal = "Vendre"
         
-        # Retourner la réponse JSON avec le signal et les prix
-        return jsonify({'signal': signal, 'gold': gold_price, 'usd': usd_price})
+        # Rendre la page avec les données
+        return render_template('gold_and_usd.html', signal=signal, gold_price=gold_price, usd_price=usd_price)
     else:
         # Si les données sont manquantes, renvoyer une erreur
         return jsonify({'error': 'Données non disponibles'}), 500

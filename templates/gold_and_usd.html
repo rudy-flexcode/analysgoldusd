@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi ETF Gold et USD</title>
+    <title>Données ETF Gold et USD</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,15 +32,19 @@
             font-weight: bold;
             text-align: center;
         }
+        .price {
+            font-size: 18px;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Suivi des ETF Gold et USD</h1>
+        <h1>Données actuelles des ETF</h1>
         <div class="card">
-            <h2 class="signal">Signal de trading: <span style="color: green;">Neutre</span></h2>
-            <p>Le prix de l'ETF Gold est comparé à celui de l'ETF USD.</p>
-            <p>Visitez la route <code>/gold_and_usd</code> pour obtenir les données actuelles.</p>
+            <h2 class="signal">Signal de trading: {{ signal }}</h2>
+            <p class="price">Prix de l'ETF Gold : ${{ gold_price }}</p>
+            <p class="price">Prix de l'ETF USD : ${{ usd_price }}</p>
         </div>
     </div>
 </body>
