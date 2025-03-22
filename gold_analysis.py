@@ -16,14 +16,22 @@ cache = {
     'gold_price': None,
     'usd_price': None,
     'rsi': None,
-    'sma': None
+    'sma_short': None,
+    'sma_long': None
 }
 cache_time = 0
+
+# Pondérations
+WEIGHTS = {
+    "spread": 0.4,
+    "rsi": 0.3,
+    "sma": 0.3
+}
 
 def fetch_api(url):
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Vérifie les erreurs HTTP
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"Erreur lors de l'appel API: {e}")
@@ -43,12 +51,44 @@ def get_rsi(symbol):
         return float(data['values'][0]['rsi'])
     return None
 
-def get_sma(symbol):
-    url = f"https://api.twelvedata.com/sma?symbol={symbol}&interval=1min&apikey={API_KEY}"
+def get_sma(symbol, time_period):
+    url = f"https://api.twelvedata.com/sma?symbol={symbol}&interval=1min&time_period={time_period}&apikey={API_KEY}"
     data = fetch_api(url)
     if data and 'values' in data:
         return float(data['values'][0]['sma'])
     return None
+
+def calculate_signal(gold_price, usd_price, rsi_value, sma_short, sma_long):
+    score = 0
+
+    # Spread Gold / USD
+    if gold_price and usd_price:
+        if gold_price > usd_price:
+            score += 1 * WEIGHTS['spread']
+        elif gold_price < usd_price:
+            score -= 1 * WEIGHTS['spread']
+
+    # RSI
+    if rsi_value is not None:
+        if rsi_value < 30:
+            score += 1 * WEIGHTS['rsi']
+        elif rsi_value > 70:
+            score -= 1 * WEIGHTS['rsi']
+
+    # SMA court vs long terme
+    if sma_short and sma_long:
+        if sma_short > sma_long:
+            score += 1 * WEIGHTS['sma']
+        elif sma_short < sma_long:
+            score -= 1 * WEIGHTS['sma']
+
+    # Signal global
+    if score >= 0.5:
+        return "Acheter"
+    elif score <= -0.5:
+        return "Vendre"
+    else:
+        return "Neutre"
 
 def get_signals():
     global cache, cache_time
@@ -58,49 +98,25 @@ def get_signals():
         cache['gold_price'] = get_price(gold_symbol)
         cache['usd_price'] = get_price(usd_symbol)
         cache['rsi'] = get_rsi(gold_symbol)
-        cache['sma'] = get_sma(gold_symbol)
+        cache['sma_short'] = get_sma(gold_symbol, 7)
+        cache['sma_long'] = get_sma(gold_symbol, 21)
         cache_time = current_time
 
     gold_price = cache['gold_price']
     usd_price = cache['usd_price']
     rsi_value = cache['rsi']
-    sma_value = cache['sma']
+    sma_short = cache['sma_short']
+    sma_long = cache['sma_long']
 
-    signal = "Indisponible"
-    if gold_price is not None and usd_price is not None:
-        if gold_price > usd_price:
-            signal = "Acheter"
-        elif gold_price < usd_price:
-            signal = "Vendre"
-        else:
-            signal = "Neutre"
-
-    rsi_signal = "Indisponible"
-    if rsi_value is not None:
-        if rsi_value > 70:
-            rsi_signal = "Vendre"
-        elif rsi_value < 30:
-            rsi_signal = "Acheter"
-        else:
-            rsi_signal = "Neutre"
-
-    sma_signal = "Indisponible"
-    if sma_value is not None:
-        if gold_price > sma_value:
-            sma_signal = "Acheter"
-        elif gold_price < sma_value:
-            sma_signal = "Vendre"
-        else:
-            sma_signal = "Neutre"
+    signal = calculate_signal(gold_price, usd_price, rsi_value, sma_short, sma_long)
 
     return {
         'signal': signal,
         'gold_price': gold_price,
         'usd_price': usd_price,
         'rsi': rsi_value,
-        'rsi_signal': rsi_signal,
-        'sma': sma_value,
-        'sma_signal': sma_signal
+        'sma_short': sma_short,
+        'sma_long': sma_long
     }
 
 @app.route('/')

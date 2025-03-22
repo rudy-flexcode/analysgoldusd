@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des ETF et Analyse RSI/SMA</title>
+    <title>ETF Signal Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background: #f0f2f5;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -16,64 +16,60 @@
             min-height: 100vh;
         }
         header {
-            width: 100%;
-            background-color: #333;
-            color: white;
             text-align: center;
-            padding: 20px 0;
             margin-bottom: 30px;
         }
         header h1 {
             margin: 0;
-        }
-        .subtitle {
-            font-style: italic;
-            margin-top: 5px;
-            color: #ccc;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
+            color: #333;
             margin-bottom: 20px;
-            width: 100%;
-            max-width: 1200px;
+        }
+        .signal {
+            font-size: 24px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+        .buy { background: #4caf50; color: white; }
+        .sell { background: #f44336; color: white; }
+        .neutral { background: #999; color: white; }
+
+        .cards {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .card {
             background: white;
-            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 250px;
             text-align: center;
+            transition: transform 0.3s ease;
         }
-        .btn {
-            background-color: #4CAF50;
-            color: white;
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        button {
+            margin-top: 20px;
             padding: 10px 20px;
+            background: #007bff;
+            color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            margin: 20px 0;
+            transition: background 0.3s;
         }
-        .btn:hover {
-            background-color: #45a049;
+        button:hover {
+            background: #0056b3;
         }
         #loading {
             margin-top: 10px;
             font-style: italic;
-            color: #888;
-        }
-        footer {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 15px 0;
-            margin-top: auto;
-            font-size: 0.9em;
+            color: #555;
         }
         .legal {
             max-width: 800px;
@@ -88,48 +84,33 @@
         .legal a:hover {
             text-decoration: underline;
         }
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
-            .card {
-                width: 90%;
-            }
-        }
     </style>
 </head>
 <body>
     <header>
-        <h1>ETF Tracker Pro</h1>
-        <div class="subtitle">Suivez et analysez les ETF en temps réel</div>
+        <h1>ETF Tracker pro</h1>
+        <div id="signal" class="signal neutral">Chargement...</div>
     </header>
 
-    <div class="container">
-        <!-- Carte 1 -->
+    <div class="cards">
         <div class="card">
-            <h2>Suivi des ETF Gold et USD</h2>
-            <p>Prix de l'ETF Gold : $<span id="gold_price"></span></p>
-            <p>Prix de l'ETF USD : $<span id="usd_price"></span></p>
-            <p><strong>Signal :</strong> <span id="signal"></span></p>
+            <h3>Prix Gold</h3>
+            <p><span id="gold_price">-</span> $</p>
+            <h3>Prix USD</h3>
+            <p><span id="usd_price">-</span> $</p>
         </div>
-        
-        <!-- Carte 2 -->
         <div class="card">
-            <h2>Analyse RSI</h2>
-            <p>Valeur RSI : <span id="rsi"></span></p>
-            <p><strong>Signal RSI :</strong> <span id="rsi_signal"></span></p>
+            <h3>RSI (1 min)</h3>
+            <p><span id="rsi">-</span></p>
         </div>
-        
-        <!-- Carte 3 -->
         <div class="card">
-            <h2>Moyenne Mobile (SMA)</h2>
-            <p>Valeur SMA : <span id="sma"></span></p>
-            <p><strong>Signal SMA :</strong> <span id="sma_signal"></span></p>
+            <h3>SMA 7 vs 21</h3>
+            <p>SMA 7 : <span id="sma_short">-</span></p>
+            <p>SMA 21 : <span id="sma_long">-</span></p>
         </div>
     </div>
-    
-    <button class="btn" onclick="refreshData()">Rafraîchir les données</button>
+
+    <button onclick="refreshData()">Rafraîchir</button>
     <div id="loading"></div>
     
     <footer>
@@ -138,43 +119,39 @@
             <p>ETF Tracker Pro est un outil d'information financière fourni à titre indicatif uniquement. Les données fournies proviennent de l'API Twelve Data et sont actualisées à intervalle régulier.</p>
             <p>Les signaux d'achat et de vente générés par cet outil ne constituent en aucun cas des conseils d'investissement. Toute décision d'investissement prise sur la base de ces informations relève de la responsabilité exclusive de l'utilisateur.</p>
             <p>© 2025 ETF Tracker Pro. Tous droits réservés.</p>
-            <p>Contact : <a href="rudydev974@gmail.com">rudydev974@gmail.com</a></p>
+            <p>Contact : <a href="mailto:rudydev974@gmail.com">rudydev974@gmail.com</a></p>
         </div>
     </footer>
 
     <script>
         async function refreshData() {
-            document.getElementById('loading').innerText = "Chargement des données...";
+            document.getElementById('loading').innerText = "Chargement...";
             try {
-                const response = await fetch('/refresh');
-                if (!response.ok) {
-                    throw new Error('Erreur réseau');
-                }
-                const data = await response.json();
-                
-                document.getElementById('gold_price').innerText = data.gold_price?.toFixed(2) || "N/A";
-                document.getElementById('usd_price').innerText = data.usd_price?.toFixed(2) || "N/A";
-                document.getElementById('signal').innerText = data.signal || "N/A";
-                document.getElementById('rsi').innerText = data.rsi?.toFixed(2) || "N/A";
-                document.getElementById('rsi_signal').innerText = data.rsi_signal || "N/A";
-                document.getElementById('sma').innerText = data.sma?.toFixed(2) || "N/A";
-                document.getElementById('sma_signal').innerText = data.sma_signal || "N/A";
-            } catch (error) {
-                console.error('Erreur:', error);
-                document.getElementById('loading').innerText = "Erreur lors du chargement des données.";
+                const res = await fetch('/refresh');
+                const data = await res.json();
+
+                // Signal
+                const signalEl = document.getElementById('signal');
+                signalEl.innerText = data.signal;
+                signalEl.className = 'signal';
+                if (data.signal === "Acheter") signalEl.classList.add('buy');
+                else if (data.signal === "Vendre") signalEl.classList.add('sell');
+                else signalEl.classList.add('neutral');
+
+                // Infos
+                document.getElementById('gold_price').innerText = data.gold_price?.toFixed(2) || "-";
+                document.getElementById('usd_price').innerText = data.usd_price?.toFixed(2) || "-";
+                document.getElementById('rsi').innerText = data.rsi?.toFixed(2) || "-";
+                document.getElementById('sma_short').innerText = data.sma_short?.toFixed(2) || "-";
+                document.getElementById('sma_long').innerText = data.sma_long?.toFixed(2) || "-";
+            } catch (e) {
+                alert("Erreur lors du chargement !");
             } finally {
-                setTimeout(() => {
-                    document.getElementById('loading').innerText = "";
-                }, 2000);
+                document.getElementById('loading').innerText = "";
             }
         }
-        
-        // Auto-refresh au chargement
-        document.addEventListener('DOMContentLoaded', () => {
-            refreshData();
-            // Rafraîchir automatiquement toutes les 5 minutes
-            setInterval(refreshData, 300000);
-        });
+
+        document.addEventListener('DOMContentLoaded', refreshData);
     </script>
 </body>
 </html>
