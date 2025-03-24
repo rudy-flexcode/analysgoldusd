@@ -24,6 +24,11 @@
             color: #333;
             margin-bottom: 20px;
         }
+        .policy {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
         .signal {
             font-size: 24px;
             padding: 10px 20px;
@@ -53,6 +58,7 @@
         .card:hover {
             transform: translateY(-5px);
         }
+
         button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -71,25 +77,13 @@
             font-style: italic;
             color: #555;
         }
-        .legal {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-            text-align: justify;
-        }
-        .legal a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
-        .legal a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
     <header>
-        <h1>ETF Tracker pro</h1>
+        <h1>ETF Tracker Pro</h1>
         <div id="signal" class="signal neutral">Chargement...</div>
+        <p class="policy">Cette application fournit des signaux d'achat et de vente basés sur des indicateurs techniques. Faites vos propres recherches avant d'investir.</p>
     </header>
 
     <div class="cards">
@@ -108,46 +102,52 @@
             <p>SMA 7 : <span id="sma_short">-</span></p>
             <p>SMA 21 : <span id="sma_long">-</span></p>
         </div>
+        <div class="card">
+            <h3>MACD</h3>
+            <p>MACD : <span id="macd">-</span></p>
+            <p>Signal Line : <span id="signal_line">-</span></p>
+        </div>
+        <div class="card">
+            <h3>ATR</h3>
+            <p><span id="atr">-</span></p>
+        </div>
     </div>
 
     <button onclick="refreshData()">Rafraîchir</button>
     <div id="loading"></div>
-    
-    <footer>
-        <div class="legal">
-            <p><strong>Mentions légales</strong></p>
-            <p>ETF Tracker Pro est un outil d'information financière fourni à titre indicatif uniquement. Les données fournies proviennent de l'API Twelve Data et sont actualisées à intervalle régulier.</p>
-            <p>Les signaux d'achat et de vente générés par cet outil ne constituent en aucun cas des conseils d'investissement. Toute décision d'investissement prise sur la base de ces informations relève de la responsabilité exclusive de l'utilisateur.</p>
-            <p>© 2025 ETF Tracker Pro. Tous droits réservés.</p>
-            <p>Contact : <a href="mailto:rudydev974@gmail.com">rudydev974@gmail.com</a></p>
-        </div>
-    </footer>
 
     <script>
         async function refreshData() {
+            const button = document.querySelector('button');
+            if (button.disabled) return;
+            
+            button.disabled = true;
+            button.style.background = '#ccc';
+            button.style.cursor = 'not-allowed';
             document.getElementById('loading').innerText = "Chargement...";
+            
             try {
                 const res = await fetch('/refresh');
                 const data = await res.json();
-
-                // Signal
-                const signalEl = document.getElementById('signal');
-                signalEl.innerText = data.signal;
-                signalEl.className = 'signal';
-                if (data.signal === "Acheter") signalEl.classList.add('buy');
-                else if (data.signal === "Vendre") signalEl.classList.add('sell');
-                else signalEl.classList.add('neutral');
-
-                // Infos
+                
+                document.getElementById('signal').innerText = data.signal;
                 document.getElementById('gold_price').innerText = data.gold_price?.toFixed(2) || "-";
                 document.getElementById('usd_price').innerText = data.usd_price?.toFixed(2) || "-";
                 document.getElementById('rsi').innerText = data.rsi?.toFixed(2) || "-";
                 document.getElementById('sma_short').innerText = data.sma_short?.toFixed(2) || "-";
                 document.getElementById('sma_long').innerText = data.sma_long?.toFixed(2) || "-";
+                document.getElementById('macd').innerText = data.macd?.toFixed(4) || "-";
+                document.getElementById('signal_line').innerText = data.signal_line?.toFixed(4) || "-";
+                document.getElementById('atr').innerText = data.atr?.toFixed(4) || "-";
             } catch (e) {
                 alert("Erreur lors du chargement !");
             } finally {
                 document.getElementById('loading').innerText = "";
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.style.background = '#007bff';
+                    button.style.cursor = 'pointer';
+                }, 60000);
             }
         }
 

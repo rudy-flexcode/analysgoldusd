@@ -8,24 +8,27 @@ load_dotenv()
 app = Flask(__name__)
 
 API_KEY = os.getenv("API_KEY")
+
 gold_symbol = "GLD"
 usd_symbol = "UUP"
 
-# Cache global pour toutes les données
 cache = {
     'gold_price': None,
     'usd_price': None,
     'rsi': None,
     'sma_short': None,
-    'sma_long': None
+    'sma_long': None,
+    'macd': None,
+    'signal_line': None,
+    'atr': None
 }
 cache_time = 0
 
-# Pondérations
 WEIGHTS = {
-    "spread": 0.4,
     "rsi": 0.3,
-    "sma": 0.3
+    "sma": 0.3,
+    "macd": 0.25,
+    "atr_filter": 0.15
 }
 
 def fetch_api(url):
@@ -34,55 +37,60 @@ def fetch_api(url):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"Erreur lors de l'appel API: {e}")
+        print(f"Erreur API: {e}")
         return None
 
 def get_price(symbol):
     url = f"https://api.twelvedata.com/price?symbol={symbol}&apikey={API_KEY}"
     data = fetch_api(url)
-    if data and 'price' in data:
-        return float(data['price'])
-    return None
+    return float(data['price']) if data and 'price' in data else None
 
 def get_rsi(symbol):
     url = f"https://api.twelvedata.com/rsi?symbol={symbol}&interval=1min&apikey={API_KEY}"
     data = fetch_api(url)
-    if data and 'values' in data:
-        return float(data['values'][0]['rsi'])
-    return None
+    return float(data['values'][0]['rsi']) if data and 'values' in data else None
 
 def get_sma(symbol, time_period):
     url = f"https://api.twelvedata.com/sma?symbol={symbol}&interval=1min&time_period={time_period}&apikey={API_KEY}"
     data = fetch_api(url)
-    if data and 'values' in data:
-        return float(data['values'][0]['sma'])
-    return None
+    return float(data['values'][0]['sma']) if data and 'values' in data else None
 
-def calculate_signal(gold_price, usd_price, rsi_value, sma_short, sma_long):
+def get_macd(symbol):
+    url = f"https://api.twelvedata.com/macd?symbol={symbol}&interval=1min&apikey={API_KEY}"
+    data = fetch_api(url)
+    if data and 'values' in data:
+        return float(data['values'][0]['macd']), float(data['values'][0]['signal'])
+    return None, None
+
+def get_atr(symbol):
+    url = f"https://api.twelvedata.com/atr?symbol={symbol}&interval=1min&time_period=14&apikey={API_KEY}"
+    data = fetch_api(url)
+    return float(data['values'][0]['atr']) if data and 'values' in data else None
+
+def calculate_signal(data):
     score = 0
 
-    # Spread Gold / USD
-    if gold_price and usd_price:
-        if gold_price > usd_price:
-            score += 1 * WEIGHTS['spread']
-        elif gold_price < usd_price:
-            score -= 1 * WEIGHTS['spread']
+    if data['rsi'] is not None:
+        if data['rsi'] < 45:
+            score += WEIGHTS['rsi']
+        elif data['rsi'] > 55:
+            score -= WEIGHTS['rsi']
 
-    # RSI
-    if rsi_value is not None:
-        if rsi_value < 30:
-            score += 1 * WEIGHTS['rsi']
-        elif rsi_value > 70:
-            score -= 1 * WEIGHTS['rsi']
+    if data['sma_short'] and data['sma_long']:
+        if data['sma_short'] > data['sma_long']:
+            score += WEIGHTS['sma']
+        elif data['sma_short'] < data['sma_long']:
+            score -= WEIGHTS['sma']
 
-    # SMA court vs long terme
-    if sma_short and sma_long:
-        if sma_short > sma_long:
-            score += 1 * WEIGHTS['sma']
-        elif sma_short < sma_long:
-            score -= 1 * WEIGHTS['sma']
+    if data['macd'] and data['signal_line']:
+        if data['macd'] > data['signal_line']:
+            score += WEIGHTS['macd']
+        elif data['macd'] < data['signal_line']:
+            score -= WEIGHTS['macd']
 
-    # Signal global
+    if data['atr'] and data['atr'] > 0.2:
+        score += WEIGHTS['atr_filter']
+
     if score >= 0.5:
         return "Acheter"
     elif score <= -0.5:
@@ -95,29 +103,21 @@ def get_signals():
     current_time = time()
 
     if current_time - cache_time > 60:
-        cache['gold_price'] = get_price(gold_symbol)
-        cache['usd_price'] = get_price(usd_symbol)
-        cache['rsi'] = get_rsi(gold_symbol)
-        cache['sma_short'] = get_sma(gold_symbol, 7)
-        cache['sma_long'] = get_sma(gold_symbol, 21)
+        print("Mise à jour des données...")
+        cache.update({
+            'gold_price': get_price(gold_symbol),
+            'usd_price': get_price(usd_symbol),
+            'rsi': get_rsi(gold_symbol),
+            'sma_short': get_sma(gold_symbol, 7),
+            'sma_long': get_sma(gold_symbol, 21),
+            'macd': None,
+            'signal_line': None,
+            'atr': get_atr(gold_symbol)
+        })
+        cache['macd'], cache['signal_line'] = get_macd(gold_symbol)
         cache_time = current_time
-
-    gold_price = cache['gold_price']
-    usd_price = cache['usd_price']
-    rsi_value = cache['rsi']
-    sma_short = cache['sma_short']
-    sma_long = cache['sma_long']
-
-    signal = calculate_signal(gold_price, usd_price, rsi_value, sma_short, sma_long)
-
-    return {
-        'signal': signal,
-        'gold_price': gold_price,
-        'usd_price': usd_price,
-        'rsi': rsi_value,
-        'sma_short': sma_short,
-        'sma_long': sma_long
-    }
+    
+    return {**cache, 'signal': calculate_signal(cache)}
 
 @app.route('/')
 def index():
@@ -125,9 +125,7 @@ def index():
 
 @app.route('/refresh', methods=['GET'])
 def refresh_data():
-    data = get_signals()
-    return jsonify(data)
+    return jsonify(get_signals())
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
