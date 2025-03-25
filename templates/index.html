@@ -5,69 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ETF Signal Dashboard</title>
     <style>
+        /* Styles généraux */
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #f0f2f5, #e0e7ff);
+            margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            margin: 0;
             min-height: 100vh;
         }
+
+        /* Header */
         header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
             text-align: center;
-            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         header h1 {
             margin: 0;
-            color: #333;
-            margin-bottom: 20px;
+            font-size: 2.5rem;
         }
-        .policy {
-            font-size: 12px;
-            color: #666;
-            margin-top: 10px;
+        header p {
+            margin: 5px 0 0;
+            font-size: 1rem;
         }
+
+        /* Signal */
         .signal {
             font-size: 24px;
             padding: 10px 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin: 20px auto;
+            text-align: center;
+            width: fit-content;
             transition: background 0.3s ease;
         }
         .buy { background: #4caf50; color: white; }
         .sell { background: #f44336; color: white; }
         .neutral { background: #999; color: white; }
 
+        /* Cards */
         .cards {
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
+            padding: 20px;
         }
         .card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             width: 250px;
             text-align: center;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        .card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .card p {
+            font-size: 1.2rem;
+            color: #555;
         }
 
+        /* Button */
         button {
-            margin-top: 20px;
+            margin: 20px auto;
             padding: 10px 20px;
             background: #007bff;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            display: block;
         }
         button:hover {
             background: #0056b3;
@@ -76,16 +97,38 @@
             margin-top: 10px;
             font-style: italic;
             color: #555;
+            text-align: center;
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 20px;
+            margin-top: auto;
+            font-size: 0.9rem;
+        }
+        footer a {
+            color: #4caf50;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <header>
         <h1>ETF Tracker Pro</h1>
-        <div id="signal" class="signal neutral">Chargement...</div>
-        <p class="policy">Cette application fournit des signaux d'achat et de vente basés sur des indicateurs techniques. Faites vos propres recherches avant d'investir.</p>
+        <p>Suivez vos signaux d'investissement en temps réel</p>
     </header>
 
+    <!-- Signal -->
+    <div id="signal" class="signal neutral">Chargement...</div>
+
+    <!-- Cards -->
     <div class="cards">
         <div class="card">
             <h3>Prix Gold</h3>
@@ -99,8 +142,8 @@
         </div>
         <div class="card">
             <h3>SMA 7 vs 21</h3>
-            <p>SMA 7 : <span id="sma_short">-</span></p>
-            <p>SMA 21 : <span id="sma_long">-</span></p>
+            <p>SMA 7 : <span id="sma_7">-</span></p>
+            <p>SMA 21 : <span id="sma_21">-</span></p>
         </div>
         <div class="card">
             <h3>MACD</h3>
@@ -113,8 +156,14 @@
         </div>
     </div>
 
+    <!-- Refresh Button -->
     <button onclick="refreshData()">Rafraîchir</button>
     <div id="loading"></div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 ETF Tracker Pro. Tous droits réservés. <a href="#">Politique de confidentialité</a></p>
+    </footer>
 
     <script>
         async function refreshData() {
@@ -131,11 +180,12 @@
                 const data = await res.json();
                 
                 document.getElementById('signal').innerText = data.signal;
+                document.getElementById('signal').className = `signal ${data.signal.toLowerCase()}`;
                 document.getElementById('gold_price').innerText = data.gold_price?.toFixed(2) || "-";
                 document.getElementById('usd_price').innerText = data.usd_price?.toFixed(2) || "-";
                 document.getElementById('rsi').innerText = data.rsi?.toFixed(2) || "-";
-                document.getElementById('sma_short').innerText = data.sma_short?.toFixed(2) || "-";
-                document.getElementById('sma_long').innerText = data.sma_long?.toFixed(2) || "-";
+                document.getElementById('sma_7').innerText = data.sma_7?.toFixed(2) || "-";
+                document.getElementById('sma_21').innerText = data.sma_21?.toFixed(2) || "-";
                 document.getElementById('macd').innerText = data.macd?.toFixed(4) || "-";
                 document.getElementById('signal_line').innerText = data.signal_line?.toFixed(4) || "-";
                 document.getElementById('atr').innerText = data.atr?.toFixed(4) || "-";
